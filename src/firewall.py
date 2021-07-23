@@ -1,6 +1,3 @@
-from controller import SDNApplication
-
-# Ryu Imports
 from ryu.base import app_manager
 from ryu.controller import ofp_event
 from ryu.controller.handler import CONFIG_DISPATCHER, MAIN_DISPATCHER
@@ -14,13 +11,75 @@ import os
 
 #tm task=firewall
 
-class FirewallApplication(SDNApplication):
+
+class FirewallApplication(app_manager.RyuApp):
     def __init__(self, *args, **kwargs):
         super(FirewallApplication, self).__init__(*args, **kwargs)
-        self.info("Firewall Application")
+        self.info("Loading: Firewall Application")
         # Initialise mac adress table
         self.mac_to_port = {}
 
+    def info(self, text):
+        print("")
+        print("#" * (len(text) + 4))
+        print("# %s #" % text)
+        print("#" * (len(text) + 4))
+        print("")
+
+    # Set a flow on a switch
+    def set_flow(
+        self, datapath, match, actions, priority=0, hard_timeout=600, idle_timeout=60
+    ):
+        inst = [parser.OFPInstructionActions(ofproto.OFPIT_APPLY_ACTIONS, actions)]
+        flowmod = parser.OFPFlowMod(
+            datapath,
+            match=match,
+            instructions=inst,
+            priority=priority,
+            hard_timeout=hard_timeout,
+            idle_timeout=idle_timeout,
+        )
+        datapath.send_msg(flowmod)
+
+    # Send a packet out of a switch
+    def send_pkt(self, datapath, data, port=ofproto.OFPP_FLOOD):
+        actions = [parser.OFPActionOutput(port)]
+        out = parser.OFPPacketOut(
+            datapath=datapath,
+            actions=actions,
+            in_port=datapath.ofproto.OFPP_CONTROLLER,
+            data=data,
+            buffer_id=ofproto.OFP_NO_BUFFER,
+        )
+        datapath.send_msg(out)
+
+    # Set default flow rule on new switch
+    @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
+    def __sdn_app_switch_features_handler(self, ev):
+        msg = ev.msg
+        datapath = msg.datapath
+
+        print("\nSwitch with id {:d} connected\n".format(datapath.id))
+
+        # install the default-to-controller-flow
+        self.set_flow(
+            datapath,
+            parser.OFPMatch(),  # match on every packet
+            [
+                parser.OFPActionOutput(ofproto.OFPP_CONTROLLER)
+            ],  # action is sent_to_controller
+            hard_timeout=0,  # never delete this flow
+            idle_timeout=0,  # never delete this flow
+        )
+
+        # Prevent truncation of packets
+        datapath.send_msg(
+            datapath.ofproto_parser.OFPSetConfig(
+                datapath, datapath.ofproto.OFPC_FRAG_NORMAL, 0xFFFF
+            )
+        )
+
+    # Process packets in
     @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
     def packet_in_handler(self, ev):
         msg = ev.msg
@@ -40,27 +99,14 @@ class FirewallApplication(SDNApplication):
 
         in_port = msg.match["in_port"]
 
-        self.logger.info("Packet in. Switch: %s, Source: %s, Destination: %s, In Port: %s", dpid, src, dst, in_port)
-
-        # Firewall setup
-        blocked = False
-        dir = os.path.dirname(__file__)  # Relative path to dir
-
-        with open(dir + "/.blocklist/mac_blocklist.txt", "r") as mac_blocklist:
-            if src in mac_blocklist:
-                print("Found!")
-        
-        #ip_blocklist = open(dir + "/.blocklist/ip_blocklist.txt", "r")
-
-        # Compare mac adress to blocklist
-
-        # If contained, deny access + flow rule to disallow future access (Faster, controller not needed)
-
-        # Compare IP adress to blocklist
-
-        # Close resources
-        mac_blocklist.close
-        #ip_blocklist.close
+        #
+        self.logger.info(
+            "Packet in. Switch: %s, Source: %s, Destination: %s, In Port: %s",
+            dpid,
+            src,
+            dst,
+            in_port,
+        )
 
         # Learn mac adress to avoid FLOOD next time
         self.mac_to_port[dpid][src] = in_port
@@ -72,12 +118,29 @@ class FirewallApplication(SDNApplication):
 
         actions = [parser.OFPActionOutput(out_port)]
 
+        # Firewall setup
+        blocked = False
+        dir = os.path.dirname(__file__)  # Relative path to src dir
+
+        with open(dir + "/.blocklist/mac_blocklist.txt", "r") as mac_blocklist:
+            if src in mac_blocklist:
+                print("Found!")
+
+        # ip_blocklist = open(dir + "/.blocklist/ip_blocklist.txt", "r")
+
+        # Compare mac adress to blocklist
+
+        # If contained, deny access + flow rule to disallow future access (Faster, controller not needed)
+
+        # Compare IP adress to blocklist
+
         if out_port != ofproto.OFPP_FLOOD:
             match = parser.OFPMatch(in_port=in_port, eth_dst=dst)
             self.set_flow(datapath, match, actions, 1)
             self.logger.info("New flow rule set")
 
-        # Construct out packet
-        out = parser.OFPPacketOut(datapath=datapath, buffer_id=ofproto.OFP_NO_BUFFER, in_port=in_port, actions=actions, data=msg.data)
-        # Send packet out
-        datapath.send_msg(out)
+        self.send_pkt(
+            datapath=datapath,
+            data=msg.data,
+            port=out_port,
+        )
