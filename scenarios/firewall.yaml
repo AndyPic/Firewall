@@ -1,0 +1,44 @@
+# do not change this
+root:
+  # the name of the scenario
+  name: "Firewall Scenario"
+
+  # a short description that can be printed to console
+  description: "A single switch connecting two networks, N1 to represent the local network (ip 10.x.x.x) and N2 to represent the external network (ip 20.x.x.x)."
+
+  # link to a pdf with a more detailed description (if available)
+  pdf: "./firewall_scenario.pdf"
+
+  # working directory for this scenario
+  working_directory: "cwd/firewall"
+
+  # specify the topology of the scenario
+  topology:
+    # the switches of the topology
+    switches:
+      - name: s1
+        dpid: 1
+        enabled: True
+
+    # 10.x.x.x/8, 10.0.x.x/16, 10.0.0.x/24, 10.0.0.0/32
+    hosts:
+      - name: N1
+        ip: "10.0.0.1/8"
+      - name: N2
+        ip: "20.0.0.1/8"
+
+    # [HostName, SwitchName, bandwidth (mb\s)]
+    links:
+      - [N1, s1, 1000]
+      - [N2, s1, 1000]
+
+  networks:
+    - name: "N1"
+      alias: "Local Network"
+    - name: "N2"
+      alias: "External Network"
+
+  # traffic generation
+  traffic:
+    # specify all the profiles that should be used (in parallel!)
+    use_profiles: [] # None
