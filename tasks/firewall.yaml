@@ -1,0 +1,8 @@
+task:
+  name: "Firewall"
+  description: "Networks N1 and N2 are connected via the switch S1. N1 operates on IPs 10.0.0.1/8 and N2 IPs 20.0.0.1/8"
+  scenario: "firewall"
+  graph: |
+    [ S1 ] -- { start: west; label: 1 } [ N1 ] { origin: S1; offset: -2,0; }
+    [ S1 ] -- { start: east; label: 2 } [ N2 ] { origin: S1; offset:  2,0; }
+  examination: 0
