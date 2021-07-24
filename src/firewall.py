@@ -119,26 +119,28 @@ class FirewallApplication(app_manager.RyuApp):
         actions = [parser.OFPActionOutput(out_port)]
 
         # Firewall setup
-        blocked = False
         dir = os.path.dirname(__file__)  # Relative path to src dir
 
-        with open(dir + "/.blocklist/mac_blocklist.txt", "r") as mac_blocklist:
-            if src in mac_blocklist:
-                print("Found!")
-
-        # ip_blocklist = open(dir + "/.blocklist/ip_blocklist.txt", "r")
-
         # Compare mac adress to blocklist
+        with open(dir + "/.blocklist/mac_blocklist.txt", "r") as mac_blocklist:
+            if src + "\n" in mac_blocklist:
+                # Create drop flow rule
+                print(src)
+                self.set_flow(datapath, parser.OFPMatch(eth_src = src), "", 2, 0, 1800) # No hard timeout, idle = 30 mins
+                print("New DROP rule set")
+                return # Exit without runing rest of script
 
-        # If contained, deny access + flow rule to disallow future access (Faster, controller not needed)
+        # TODO - ip blocklist
+        # TODO - ipv4/6
+        # TODO -
 
-        # Compare IP adress to blocklist
-
+        # Create flow rule (default timeout from set_flow method)
         if out_port != ofproto.OFPP_FLOOD:
             match = parser.OFPMatch(in_port=in_port, eth_dst=dst)
             self.set_flow(datapath, match, actions, 1)
-            self.logger.info("New flow rule set")
+            print("New FORWARD rule set")
 
+        # Finally, forward packet to destination
         self.send_pkt(
             datapath=datapath,
             data=msg.data,
