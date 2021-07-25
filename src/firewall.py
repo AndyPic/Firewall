@@ -13,6 +13,9 @@ import os
 
 
 class FirewallApplication(app_manager.RyuApp):
+    N1_mac = "00:00:00:00:00:01"
+    block_dir = os.path.dirname(__file__) + "/.blocklist/"  # Relative path to src dir
+
     def __init__(self, *args, **kwargs):
         super(FirewallApplication, self).__init__(*args, **kwargs)
         self.info("Loading: Firewall Application")
@@ -26,7 +29,7 @@ class FirewallApplication(app_manager.RyuApp):
         print("#" * (len(text) + 4))
         print("")
 
-    # Set a flow on a switch
+    # Set a flow on a switc
     def set_flow(
         self, datapath, match, actions, priority=0, hard_timeout=600, idle_timeout=60
     ):
@@ -52,6 +55,22 @@ class FirewallApplication(app_manager.RyuApp):
             buffer_id=ofproto.OFP_NO_BUFFER,
         )
         datapath.send_msg(out)
+
+    # Method to check a given blocklist (param), creates drop
+    # flow rule if present in blocklist and returns true,
+    # otherwise returns false.
+    def check_blocklist(self, blocklist, dst, src, datapath):
+        with open(self.block_dir + blocklist, "r") as mac_blocklist:
+            if dst == self.N1_mac and src + "\n" in mac_blocklist:
+                match = parser.OFPMatch(eth_src=src, eth_dst=dst)
+                # Create drop flow rule
+                self.set_flow(
+                    datapath, match, "", 2, 0, 1800
+                )  # No hard timeout, idle = 30 mins
+                print("New DROP rule set")
+                return True
+            else:
+                return False
 
     # Set default flow rule on new switch
     @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
@@ -100,12 +119,13 @@ class FirewallApplication(app_manager.RyuApp):
         in_port = msg.match["in_port"]
 
         #
-        self.logger.info(
-            "Packet in. Switch: %s, Source: %s, Destination: %s, In Port: %s",
-            dpid,
-            src,
-            dst,
-            in_port,
+        print(
+            "Packet in. Switch: {}, Source: {}, Destination: {}, In Port: {}".format(
+                dpid,
+                src,
+                dst,
+                in_port,
+            )
         )
 
         # Learn mac adress to avoid FLOOD next time
@@ -119,20 +139,14 @@ class FirewallApplication(app_manager.RyuApp):
         actions = [parser.OFPActionOutput(out_port)]
 
         # Firewall setup
-        dir = os.path.dirname(__file__)  # Relative path to src dir
 
         # Compare mac adress to blocklist
-        with open(dir + "/.blocklist/mac_blocklist.txt", "r") as mac_blocklist:
-            if src + "\n" in mac_blocklist:
-                # Create drop flow rule
-                print(src)
-                self.set_flow(datapath, parser.OFPMatch(eth_src = src), "", 2, 0, 1800) # No hard timeout, idle = 30 mins
-                print("New DROP rule set")
-                return # Exit without runing rest of script
+        if self.check_blocklist("mac_blocklist.txt", dst, src, datapath):
+            return
 
         # TODO - ip blocklist
         # TODO - ipv4/6
-        # TODO -
+        # TODO - Prevent FTP traffic to external IPs
 
         # Create flow rule (default timeout from set_flow method)
         if out_port != ofproto.OFPP_FLOOD:
