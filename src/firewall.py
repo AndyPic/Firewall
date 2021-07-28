@@ -6,8 +6,9 @@ import ryu.ofproto.ofproto_v1_3_parser as parser
 import ryu.ofproto.ofproto_v1_3 as ofproto
 from ryu.lib.packet import packet, ether_types, arp, ethernet, ipv4
 from termcolor import colored
+from timeit import default_timer as timer
 
-import os, array, ipaddress
+import os, array, ipaddress, json, time
 
 #tm task=firewall
 
@@ -15,9 +16,10 @@ import os, array, ipaddress
 class FirewallApplication(app_manager.RyuApp):
     def __init__(self, *args, **kwargs):
         super(FirewallApplication, self).__init__(*args, **kwargs)
-        self.info("Loading: Firewall Application")
+        self.info("Load Application: FIREWALL")
         # Initialise mac adress table
         self.mac_to_port = {}
+        self.ip_to_port = {}
         self.N1_mac = "00:00:00:00:00:01"  # Mac adress of N1 - must be first defined host in scenario
         self.N1_ipv4 = ipaddress.ip_network("11.0.0.0/16")
         self.block_dir = (
@@ -28,14 +30,20 @@ class FirewallApplication(app_manager.RyuApp):
         )  # Relative path to allowlist directory
 
     def info(self, text):
-        print("\n" + ("#" * (len(text) + 4)))
-        print("# %s #" % text)
-        print(("#" * (len(text) + 4)) + "\n")
+        print("\n    " + colored(" " * (len(text) + 4), "white", "on_yellow"))
+        print("      {}  ".format(text))
+        print("    " + colored(" " * (len(text) + 4), "white", "on_yellow") + "\n")
 
     # Set a flow on a switch
     def set_flow(
         self, datapath, match, actions, priority=0, hard_timeout=600, idle_timeout=60
     ):
+        # Type of rule set
+        if actions == []:
+            rule = colored("DROP", "yellow", attrs=["bold"])
+        else:
+            rule = colored("FORWARD", "green", attrs=["bold"])
+
         inst = [parser.OFPInstructionActions(ofproto.OFPIT_APPLY_ACTIONS, actions)]
         flowmod = parser.OFPFlowMod(
             datapath=datapath,
@@ -46,7 +54,14 @@ class FirewallApplication(app_manager.RyuApp):
             hard_timeout=hard_timeout,
             idle_timeout=idle_timeout,
         )
-        datapath.send_msg(flowmod)
+        if datapath.send_msg(flowmod):
+            print(
+                colored("    New ", "green") + rule + colored(" flow rule set", "green")
+            )
+            return True
+        else:
+            print(colored("    FAILED TO SET NEW FLOW RULE", "red", attrs=["bold"]))
+            return False
 
     # Send a packet out of a switch, return true if success
     def send_pkt(self, datapath, data, port=ofproto.OFPP_FLOOD):
@@ -60,55 +75,78 @@ class FirewallApplication(app_manager.RyuApp):
         )
         return datapath.send_msg(out)
 
-    # Method to check a given blocklist_name (param), creates drop
-    # flow rule if present in blocklist and returns true,
-    # otherwise returns false.
-    def check_blocklist(self, blocklist_name, dst, src, datapath):
-        # Find type
-        protocol_type = None
-        try:
-            ipaddress.ip_network(dst)
-        except ValueError:
-            protocol_type = "mac"
+    # def binary_search(self, item, list):
+    #    """ Binary search for item (needle) in list (haystack), returns the position and true/false if found """
+    #    first = 0
+    #    last = len(list) - 1
+    #    found = False
+    #    while first <= last and not found:
+    #        pos = 0
+    #        midpoint = (first + last) // 2
+    #        if list[midpoint] == item:
+    #            pos = midpoint
+    #            found = True
+    #        else:
+    #            if item < list[midpoint]:
+    #                last = midpoint - 1
+    #            else:
+    #                first = midpoint + 1
+    #    return (pos, found)
+
+    def check_mac(self, dst, src, datapath):
+        """Checks given mac address against 'blocklist.json' & return True if present"""
+        block_file = open(self.block_dir + "blocklist.json", "r")
+        blocklist = json.load(block_file)
+        if src in blocklist["mac"]:
+            # Build match obj
+            match = parser.OFPMatch(eth_src=src, eth_dst=dst)
+            # Create drop flow rule (empty action)
+            self.set_flow(
+                datapath, match, [], 2, 0, 1800
+            )  # No hard timeout, idle = 30 mins
+            block_file.close()
+            return True
         else:
-            protocol_type = "ip"
+            block_file.close()
+            return False
 
-        with open(self.block_dir + blocklist_name, "r") as blocklist:
-            # Check source against blocklist
-            if (
-                protocol_type == "mac"
-                and dst == self.N1_mac
-                and src + "\n" in blocklist
-            ):
-                match = parser.OFPMatch(eth_src=src, eth_dst=dst)
-                # Create drop flow rule
-                self.set_flow(
-                    datapath, match, [], 2, 0, 1800
-                )  # No hard timeout, idle = 30 mins
-                print("#\n#     New DROP rule set\n#")
-                return True
-            elif (
-                protocol_type == "ip"
-                and ipaddress.ip_address(dst) in self.N1_ipv4
-                and src + "\n" in blocklist
-            ):
+    def check_ipv4(self, dst, src, datapath):
+        """Checks given ipv4 address against 'blocklist.json' & return True if present"""
+        response = False
+        block_file = open(self.block_dir + "blocklist.json", "r")
+        blocklist = json.load(block_file)
 
-                # TODO - support for masked IPs in blocklist
-                # Better solution for "\n"
-                # Split into differnet methods (ip / mac)
-                # Do something with mac_to_port
-                # Add port to print msg
-                # IP forward flow rule
+        if src in blocklist["ipv4"]:
+            # Build match obj
+            match = parser.OFPMatch(
+                eth_type=ether_types.ETH_TYPE_IP, ipv4_dst=dst, ipv4_src=src
+            )
+            # Create drop flow rule (empty action)
+            self.set_flow(
+                datapath, match, [], 2, 0, 1800
+            )  # No hard timeout, idle = 30 mins
+            response = True
+        else:
+            src_address = ipaddress.ip_address(src)
+            for i in blocklist["ipv4_mask"]:
+                ipv4_network = ipaddress.ip_network(i)
+                if src_address in ipv4_network:
+                    # Build match obj
+                    match = parser.OFPMatch(
+                        eth_type=ether_types.ETH_TYPE_IP, ipv4_dst=dst, ipv4_src=src
+                    )
+                    # Create drop flow rule (empty action)
+                    self.set_flow(
+                        datapath, match, [], 2, 0, 1800
+                    )  # No hard timeout, idle = 30 mins
+                    response = True
 
-                match = parser.OFPMatch(eth_type = ether_types.ETH_TYPE_IP, ipv4_dst=dst, ipv4_src=src)
-                # Create drop flow rule
-                self.set_flow(
-                    datapath, match, [], 2, 0, 1800
-                )  # No hard timeout, idle = 30 mins
-                print("#\n#     New DROP rule set\n#")
-                return True
-            else:
-                return False
+        block_file.close()
+        return response
+
+    def elapsed_time(self, start):
+        elapsed = timer() - start
+        return "Elapsed: " + str(elapsed) + "-sec"
 
     # Set default flow rule on new switch
     @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
@@ -139,46 +177,39 @@ class FirewallApplication(app_manager.RyuApp):
     # Process packets in
     @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
     def packet_in_handler(self, ev):
+        # Start timeit for method
+        # TODO - time / (1/1000) = ms
+        start_time = timer()
+
         msg = ev.msg
-        # parse msg for info
         datapath = msg.datapath
-        ofproto = datapath.ofproto
-        parser = datapath.ofproto_parser
+        in_port = msg.match["in_port"]
 
         # Define OF switch identifier + set mac adress table for switch
         dpid = datapath.id
         self.mac_to_port.setdefault(dpid, {})
+        self.ip_to_port.setdefault(dpid, {})
 
         # Get array of protocol packets
-        pkts = packet.Packet(array.array("B", ev.msg.data))
-        # print(pkts)
+        pkts = packet.Packet(array.array("B", msg.data))
+
         # Iterate & get relevant info
         for p in pkts:
             # Get mac info
             if isinstance(p, ethernet.ethernet):
                 eth_dst = p.dst
                 eth_src = p.src
+                # Learn mac adress to avoid FLOOD next time
+                self.mac_to_port[dpid][eth_src] = in_port
                 continue
 
             # Get ipv4 info
             if isinstance(p, ipv4.ipv4):
                 ipv4_dst = p.dst
                 ipv4_src = p.src
+                # Learn mac adress to avoid FLOOD next time
+                self.ip_to_port[dpid][ipv4_src] = in_port
                 continue
-
-            # Check if is an arp
-            if isinstance(p, arp.arp):
-                is_arp = True
-                continue
-            else:
-                try:
-                    is_arp
-                except NameError:
-                    is_arp = False
-                else:
-                    pass
-
-        in_port = msg.match["in_port"]
 
         # Display message on packet in - ip info if available, otherwise mac
         try:
@@ -189,33 +220,47 @@ class FirewallApplication(app_manager.RyuApp):
         else:
             print("+ Packet in.  {} -> {}".format(ipv4_src, ipv4_dst))
 
-        # Learn mac adress to avoid FLOOD next time
-        self.mac_to_port[dpid][eth_src] = in_port
+        try:
+            if eth_dst == self.N1_mac or ipaddress.ip_address(ipv4_dst) in self.N1_ipv4:
+                # Compare mac adress to blocklist
+                if self.check_mac(eth_dst, eth_src, datapath):
+                    print(self.elapsed_time(start_time))
+                    return
+                # Compare ipv4 adress to blocklist
+                if self.check_ipv4(ipv4_dst, ipv4_src, datapath):
+                    print(self.elapsed_time(start_time))
+                    return
+        except NameError:
+            pass
 
-        if eth_dst in self.mac_to_port[dpid]:
-            out_port = self.mac_to_port[dpid][eth_dst]
-        else:
+        try:
+            if eth_dst in self.mac_to_port[dpid]:
+                out_port = self.mac_to_port[dpid][eth_dst]
+
+                # Create flow rule
+                match = parser.OFPMatch(in_port=in_port, eth_dst=eth_dst)
+                self.set_flow(
+                    datapath, match, [parser.OFPActionOutput(out_port)], 1, 0, 999
+                )
+
+            elif ipaddress.ip_address(ipv4_dst) in self.N1_ipv4:
+                out_port = 1
+
+                # Create flow rule
+                match = parser.OFPMatch(
+                    eth_type=ether_types.ETH_TYPE_IP,
+                    in_port=in_port,
+                    ipv4_dst=ipv4_dst,
+                    ipv4_src=ipv4_src,
+                )
+                self.set_flow(
+                    datapath, match, [parser.OFPActionOutput(out_port)], 1, 0, 999
+                )
+
+            else:
+                out_port = ofproto.OFPP_FLOOD
+        except (NameError, UnboundLocalError):
             out_port = ofproto.OFPP_FLOOD
-
-        # Compare mac adress to blocklist
-        try:
-            if self.check_blocklist("mac_blocklist.txt", eth_dst, eth_src, datapath):
-                return
-        except NameError:
-            pass
-
-        # Compare ipv4 adress to blocklist
-        try:
-            if self.check_blocklist("ipv4_blocklist.txt", ipv4_dst, ipv4_src, datapath):
-                return
-        except NameError:
-            pass
-
-        # Create flow rule (default timeout from set_flow method)
-        if out_port != ofproto.OFPP_FLOOD:
-            match = parser.OFPMatch(in_port=in_port, eth_dst=eth_dst)
-            self.set_flow(datapath, match, [parser.OFPActionOutput(out_port)], 1)
-            print("#\n#     New FORWARD rule set\n#")
 
         # Forward packet to destination
         if self.send_pkt(
@@ -228,10 +273,21 @@ class FirewallApplication(app_manager.RyuApp):
                 ipv4_src
                 ipv4_dst
             except NameError:
-                print("- Packet out. {} -> {}".format(eth_src, eth_dst))
+                print(
+                    "- Packet out. {} <- {}".format(
+                        eth_src,
+                        eth_dst,
+                    )
+                )
+                print(self.elapsed_time(start_time))
             else:
-                print("- Packet out. {} <- {}".format(ipv4_src, ipv4_dst))
+                print(
+                    "- Packet out. {} <- {}".format(
+                        ipv4_src,
+                        ipv4_dst,
+                    )
+                )
+                print(self.elapsed_time(start_time))
         else:
-            print("* FAILED TO SEND PACKET")
-
-        
+            print(colored("* FAILED TO SEND PACKET", "red", attrs=["bold"]))
+            print(self.elapsed_time(start_time))
