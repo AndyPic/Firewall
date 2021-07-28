@@ -1,8 +1,11 @@
 task:
   name: "Firewall"
-  description: "Networks N1 and N2 are connected via the switch S1. N1 operates on IPs 10.0.0.1/8 and N2 IPs 20.0.0.1/8"
+  description: "Networks n1-5 are connected via the switch s1. n1 is used to represent the local network, and networks n2-5 represent external networks. n1 has IP adresses in the range of 11.0.0.0/16, n2 IPs 22.0.0.1/8, n3 IPs 33.0.0.1/16, n4 IPs 44.0.0.1/8, n5 IPs 55.0.0.1/24"
   scenario: "firewall"
   graph: |
-    [ S1 ] -- { start: west; label: 1 } [ N1 ] { origin: S1; offset: -2,0; }
-    [ S1 ] -- { start: east; label: 2 } [ N2 ] { origin: S1; offset:  2,0; }
+    [ s1 ] -- { start: west; label: 1 } [ n1 ] { origin: s1; offset: -2,0; }
+    [ s1 ] -- { start: north; label: 2 } [ n2 ] { origin: s1; offset:  0,-2; }
+    [ s1 ] -- { start: east; label: 3 } [ n3 ] { origin: s1; offset:  2,0; }
+    [ s1 ] -- { start: east; label: 4 } [ n4 ] { origin: s1; offset:  2,1; }
+    [ s1 ] -- { start: south; label: 5 } [ n5 ] { origin: s1; offset:  0,2; }
   examination: 0
