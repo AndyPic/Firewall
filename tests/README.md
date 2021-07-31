@@ -97,4 +97,5 @@ Fig. 2 - Stacked graph of relative latency for the different approaches in test 
 These results indicate that the best combination for latency is to:
 - Load the blocklist on init
 - Use a hashable data structure with python 'in' keyword
-	  
+
+Fig. 2 (and the standard deviations) also demonstrate that using the hashable data structure reduces the variance in lookup times.
