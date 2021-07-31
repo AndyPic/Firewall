@@ -1,5 +1,26 @@
 ## README ##
 
+**File Structure / Where Is**
+
+Application:
+>src>firewall.py
+
+Blocklist:
+>src>.blocklist>blocklist.json
+Blocklist Generator:
+>src>.blocklist>blocklist_gen.py
+
+Scenario:
+>scenarios>firewall.yaml
+
+Task:
+>tasks>firewall.yaml
+
+Test / Evaluation:
+>tests>README.md
+
+Images can be found in the 'imgs' sub-fodler of the relevant folder.
+
 **Installation / setup:**
 
 (Ensure sdn-cockpit is not running before starting)
