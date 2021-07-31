@@ -1,5 +1,17 @@
 ## README ##
 
+**Intro**
+
+Application: Firewall
+
+Background: Create a firewall to be used as part of a multi-level security solution
+
+Goals: 
+- Monitor incoming traffic & access header information
+- Access a blocklist
+- Use information from the blocklist and packet headers to block or allow traffic
+- Not cause undue additional latency, as the firewall is only part of a larger security system
+
 **File Structure / Where Is**
 
 (File paths relevant to repo base  [ie. this README location])
