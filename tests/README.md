@@ -98,7 +98,7 @@ These results indicate that the best combination for latency is to:
 - Load the blocklist on init
 - Use a hashable data structure with python 'in' keyword
 
-Fig. 2 (and the standard deviations) also demonstrate that using the hashable data structure reduces the variance in lookup times.
+The figure 2 (and the standard deviations) also demonstrate that using the hashable data structure reduces the variance in lookup times.
 
 <img src"https://gitlab2.eeecs.qub.ac.uk/40315028/csc7078-project-andrewpickard/raw/master/tests/imgs/test_running.png" />
 
