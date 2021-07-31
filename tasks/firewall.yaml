@@ -1,6 +1,6 @@
 task:
   name: "Firewall"
-  description: "Networks n1-5 are connected via the switch s1. n1 is used to represent the local network, and networks n2-5 represent external networks. n1 has IP adresses in the range of 11.0.0.0/16, n2 IPs 22.0.0.1/8, n3 IPs 33.0.0.1/16, n4 IPs 44.0.0.1/8, n5 IPs 55.0.0.1/24"
+  description: "Networks n1-5 are connected via the switch s1. n1 is used to represent the local network, and networks n2-5 represent external networks. n1 has IP adresses in the range of 11.0.0.0/16 (mask: 11.0.255.255), n2 IPs 22.0.0.0/8 (mask: 22.255.255.255), n3 IPs 33.0.0.0/16 (mask: 33.0.255.255), n4 IPs 44.0.0.1/8 (mask: 44.255.255.255), n5 IPs 55.0.0.1/24 (mask: 55.0.0.255)"
   scenario: "firewall"
   graph: |
     [ s1 ] -- { start: west; label: 1 } [ n1 ] { origin: s1; offset: -2,0; }
