@@ -2,7 +2,8 @@
 
 Multiple tests were run to determine the most efficient data structure and access/search method for the blocklist.
 
-TL;DR - The best option was to have a blocklist with hashable data structure, load the blocklist in to memory at controller init, and use python 'in' keyword for hash table lookup.
+TL;DR - The best option was to have a blocklist with hashable data structure, load the blocklist in to memory at 
+controller init, and use python 'in' keyword for hash table lookup.
 Resulting in:
 
 **POSITIVE**
@@ -59,6 +60,7 @@ The average latency (in ms) and std deviations were:
 
 
 <img src="https://gitlab2.eeecs.qub.ac.uk/40315028/csc7078-project-andrewpickard/raw/master/tests/imgs/Firewall_latency_graph.png" />
+
 Fig. 1 - Stacked graph of relative latency for the different approaches in test 1.
 
 These results indicate that the best performance is to use 32-bit integer with the binary search method.
@@ -71,7 +73,8 @@ The SECOND TEST build on the results of the first, and compared:
 	2: A list of 32-bit integers to represent ip addresses (eg. [369112924, 369113360])
 	   Binary search method
 	  
-	3: A dict of hashable key-value pairs of formatted ip adresses (key) and 32-bit int (value) (eg. {"22.0.0.67": 369098819, "22.0.0.217": 369098969})
+	3: A dict of hashable key-value pairs of formatted ip adresses (key) and 32-bit int (value) 
+	   (eg. {"22.0.0.67": 369098819, "22.0.0.217": 369098969})
 	   Python 'in' keyword (No comparison with binary search, as it doesnt benefit from being hashable)
 
 Blocklist file was loaded in on init, not per-operation.
@@ -88,6 +91,7 @@ The average latency (in ms) and std deviations were:
 		Std.D	= 0.34912167
 		
 <img src="https://gitlab2.eeecs.qub.ac.uk/40315028/csc7078-project-andrewpickard/raw/master/tests/imgs/firewall_latency_graph_2.png" />
+
 Fig. 2 - Stacked graph of relative latency for the different approaches in test 2.
 
 These results indicate that the best combination for latency is to:
