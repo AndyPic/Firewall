@@ -62,10 +62,25 @@ scenario file with the expected packet ratio to enable testing of the firewall (
 
 To generate a new blocklist:
 
-- Requires firewall.yaml scenario file (by default, can be changed in the file "SCENARIO_NAME" constant).
+- Requires firewall.yaml scenario file (by default, can be changed in the application "SCENARIO_NAME" constant).
 - The Scenario file must have been run atleast once, for sdn-cockpit to generate the schedule file.
 
 Simply run blocklist_gen.py
 (May need to 'pip install' a compatible yaml lib eg. PyYaml)
 Note: It isn't necesary to generate a blocklist, I've provided one in the files.
 
+**Security Goals & Project Summary**
+
+The intention of this firewall application was that it would be used as a single component in a multilevel security strategy,
+necessitating the firewall **1)** not cause undue additional latency, **2)** monitor incoming traffic and access relevant header information 
+**3)** access a blocklist and **4)** deny / allow access based on 2/3.
+
+These goals were achieved by:
+1: Ensuring the firewall processes packets as fast as possible
+    - Efficient data structure of blocklist
+    - Efficient lookup method
+    - Create flow rules for faster routing of subsequent traffic
+2: Switch default flow rule to forward all traffic to the controller
+    - Ryu lib used to access header information
+3: Blocklist read in to local variable (dict) to be accessed when needed
+4: Flow rules and packet forwarding / dropping were implemented based on header information and the blocklist
