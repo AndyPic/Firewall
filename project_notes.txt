@@ -1,0 +1,161 @@
+need a .yaml for:
+- config
+- task
+and .py for controller thingy?
+
+(session 4 [a bit in session 3 too] describe a lot of the .py and .yaml)
+
+Use proxy.py to create traffic to test firewall (rather than hping3)
+
+Edit security.py to make the firewall? (1:30hr into session4 recording)
+
+.pcap to record traffic from wireshark, tcp replay to replay .pcap traffic
+-> can find a .pcap file online of predefined traffic and use that
+
+database indexing to reduce search time?
+	filtered ip's in ranges to reduce search?
+	ips 0-100, 101-200 etc.
+
+more complex topology
+check protocol aswell as IP with firewall block list
+	udp
+	tcp
+	etc.
+
+BLACKLIST = BLOCKLIST
+WHITELIST = ALLOW LIST
+
+
+Controller python path:
+C:\Users\Andy\sdn-cockpit\sync\local\apps\src
+
+Scenarios yaml path:
+C:\Users\Andy\sdn-cockpit\sync\local\apps\scenarios
+
+Tasks yaml path:
+C:\Users\Andy\sdn-cockpit\sync\local\apps\tasks
+
+Startup:
+
+1.Open git bash from your Desktop
+2.Change to the sdncockpit directory i.e.,cd sdn-cockpit
+3.Run the command vagrant up
+4.Once this process completes(about 1 minute), run the command vagrant ssh
+5.Once the VM interface appears, run the command bash run.sh
+
+Shutdown:
+1.The quit command is CTR + b followed by d. This closes the bash run.sh session
+2.To shutdown the VM, exit the vm (type exit) then run vagrant halt
+3.You can also check current machine states using vagrant status
+
+Single controller implementation, in production environment you may have multiple working in paralel (fail safe etc.)
+flow rule - actions:CONTROLLER = everything that coems through the switch will be sent to the controller
+
+
+MAYBE - better to just apply flow rules as new switch is implemented, avoids all latency however, would need updated any time the blocklist / allowlist was updated
+
+
+DELIVERABLES -
+
+VIDEO
+10 min video -> couple power point slides to cover the setup?
+- Make it clear! Explain as if presenting to someone who doesnt know sdn etc.
+- Cover main functionality of solution
+- Background to problem + go over the topology & what tryign to defend against
+- explain solution
+
+- Demonstrate the solution + link back to the problem (cover learning objectives)
+- Bring it back up to the general solution, understanding of the reasons for doing this
+
+- Talk over some design choices within application?
+
+GITLAB
+- Comment code extensively, such as in demo.py
+- Readme = heading + bullet points (don't make sentences too long)
+	- Link to imgs folder with topology img
+	- Add to readme about edited sdn-cockpit files, or it won't work properly
+	- Link back to original project summary (maybe include the file int he repo also)
+	- Requirements at start eg. use my mininet.py file or it won't work
+- Don't interact with repo after deadline (ie. Sunday@4pm)
+
+EVALUATION/TESTING
+- Test used + the results
+- Screenshot of test being run + couple sentences explaining the img
+
+- Demonstrate that it does what it is supposed to do
+	- Firewall should block traffic between a - b where expected, and not where not expected
+	- in RYU CONTROLLER PANE - can use print statements to demonstrate what is happening within the controller
+		- Run ping in mininet pane, and show whats happening within Ryu pane, and also dump-flows to show flow rules added
+	- Open xterms on different hosts (xterm n1 n2 n3 n4 n5), ping from one host to another and tcpdump -i n1-eth0
+		- demonstrate blocking certain hosts and allowing others to pass through
+		- dump flows in mininet to show the flow rules + see stuff in ryu pane
+		- iperf -s to laucnh iperf server on one client, iperf -c (+the ip) to launch client on another host (iperf --help for options)
+			- Can be used for background traffic -t to change how long it runs for
+			- Show impact of having background traffic running on the solution
+				- eg. have n2 running a flood attack (blocked by blocklist) and run scenario at same time?
+				- have second scenario running in parallel where n2 is flooding n1?
+		- nmap stuff maybe?
+	- Look at packets passed through each flow rule in mininet
+		
+ARP handler flow rule from demo.py - allow arp's?
+
+Change topology so only n1 connects to all, and all to n1 not eachother?
+Graphs for latency
+	- Latency test with different size blocklists
+Testing the application??
+Evaluation and Testing in different readme.md files
+
+
+README
+############
+Gitlab Content
+
+SDN application code
+Network digram (Topology)
+Test information + results
+Comment code well ( comment similarly to examples provided on canvas )
+
+Video
+
+
+Intro / background of problem
+
+
+Explanation of solution and justification of choices
+
+
+Demonstration of solution working / running
+
+
+Discuss performance of solution (limitations etc.)
+
+
+Does solution uphold CIA triad
+
+
+Show additional time delay while application running
+
+
+TOPIC
+
+
+Firewall!
+
+Restrict access to system
+
+
+
+Prevent malicious actors from accessing the network
+
+Has to have previous knowledge of particular IP to block it?
+Determine whether the actor is malicious?
+
+
+
+What security goals am I trying to enforce?
+
+Confidentiality
+Data Integrity
+Accountability
+Availability
+Controlled Access
