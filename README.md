@@ -76,11 +76,11 @@ necessitating the firewall **1)** not cause undue additional latency, **2)** mon
 **3)** access a blocklist and **4)** deny / allow access based on 2/3.
 
 These goals were achieved by:
-1: Ensuring the firewall processes packets as fast as possible
+-  **1)** Ensuring the firewall processes packets as fast as possible
     - Efficient data structure of blocklist
     - Efficient lookup method
     - Create flow rules for faster routing of subsequent traffic
-2: Switch default flow rule to forward all traffic to the controller
+- **2)** Switch default flow rule to forward all traffic to the controller
     - Ryu lib used to access header information
-3: Blocklist read in to local variable (dict) to be accessed when needed
-4: Flow rules and packet forwarding / dropping were implemented based on header information and the blocklist
+- **3)** Blocklist read in to local variable (dict) to be accessed when needed
+- **4)** Flow rules and packet forwarding / dropping were implemented based on header information and the blocklist
