@@ -24,7 +24,9 @@ Should be good to go!
 
 **The Topology**
 
-IMAGE
+<img src="https://gitlab2.eeecs.qub.ac.uk/40315028/csc7078-project-andrewpickard/raw/master/imgs/Topology.png" />
+
+Fig 1. Visual representation of the topology described below
 
 This is a relatively simple, 5 network connected via a single switch topology.
 **n1** is used to represent the 'local network' ie. the network we wish the firewall application to defend,
