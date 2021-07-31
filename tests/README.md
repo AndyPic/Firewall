@@ -113,23 +113,33 @@ Fig. 3 - sdn cockpit while running the firewall.yaml scenario.
 
 Evaluation methods:
 
-- Ryu pane (in sdn-cockpit) messages (See Fig. 3)
+- Ryu pane (in sdn-cockpit) messages **(See Fig. 3 & 4)**
     - Due to print() statements within the controller, it is evident how the controller is handling packets
     - Message displayed on packet in, with source and destination info
     - Message displayed on new flow rule being set
         - Colour coded: Green = forward rule, Yellow = drop rule
-- Scenario success / failure (See Fig. 3)
+- Scenario success / failure **(See Fig. 3 & 4)**
     - Packet ratio is set in the scenario file (by blocklist_gen.py) indicating the expected packets to be dropped / forwarded 
       during the scenario
     - Displays 'SUCCESS' if the actual packet ratio matches the expected packet ratio
     - Displays either fail / error if actual doesnt match expected + debug info
-- Pings / hping3 / nmap / iperf
+- Pings / hping3 / nmap / iperf **(See Fig. 4, 5 & 6)**
     - The ping command was used in mininet to initiate the controller setting up some flow rules, and check packet routing
     - iperf was used from xterm's to check conectivity, performance and load capability
         - n1 was set as iperf -s (server) n2-5 connect as iperf -c (clients)
-- Wireshark was used to view individual packet behaviour
+- Wireshark was used to view individual packet behaviour **(See Fig. 6)**
 
 
 <img src="https://gitlab2.eeecs.qub.ac.uk/40315028/csc7078-project-andrewpickard/raw/master/tests/imgs/mininet_pings.png" />
+
+Fig. 4 - Shows the result of ping's between n1 and n2-5 (mininet pane) and the flow rule's being set (Ryu pane). 
+traffic between n2, n3 and n1 is allowed (as defined within the blocklist.json) where traffic between n4, n5 and n1 is blocked as expected.
+
 <img src="https://gitlab2.eeecs.qub.ac.uk/40315028/csc7078-project-andrewpickard/raw/master/tests/imgs/xterm_iperf.png" />
+
+Fig. 5 - (Hard to see due to small xterms) Shows an iperf server running on n1, with n2-5 connecting as clients. n2 and n3 connect fine, where n4 and n5 are blocked.
+
 <img src="https://gitlab2.eeecs.qub.ac.uk/40315028/csc7078-project-andrewpickard/raw/master/tests/imgs/wireshark_nmap.png" />
+
+Fig 6. - Shows Wireshark capturing packets from n1, while xterm n2-5 use nmap (sudo nmap -sT 11.0.0.0 -Pn) to probe n1. n2 and n3 SYN / ACK as normal, 
+where n4 and n5 are not able to connect to n1 so repeatedly ARP.
