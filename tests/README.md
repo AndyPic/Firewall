@@ -113,20 +113,23 @@ Fig. 3 - sdn cockpit while running the firewall.yaml scenario.
 
 Evaluation methods:
 
-1: Ryu pane (in sdn-cockpit) messages (See Fig. 3)
+- Ryu pane (in sdn-cockpit) messages (See Fig. 3)
     - Due to print() statements within the controller, it is evident how the controller is handling packets
     - Message displayed on packet in, with source and destination info
     - Message displayed on new flow rule being set
         - Colour coded: Green = forward rule, Yellow = drop rule
-2: Scenario success / failure (See Fig. 3)
+- Scenario success / failure (See Fig. 3)
     - Packet ratio is set in the scenario file (by blocklist_gen.py) indicating the expected packets to be dropped / forwarded 
       during the scenario
     - Displays 'SUCCESS' if the actual packet ratio matches the expected packet ratio
     - Displays either fail / error if actual doesnt match expected + debug info
-3: Pings / hping3 / nmap / iperf
+- Pings / hping3 / nmap / iperf
     - The ping command was used in mininet to initiate the controller setting up some flow rules, and check packet routing
     - iperf was used from xterm's to check conectivity, performance and load capability
         - n1 was set as iperf -s (server) n2-5 connect as iperf -c (clients)
-4: Wireshark was used to view individual packet behaviour
+- Wireshark was used to view individual packet behaviour
 
 
+<img src="https://gitlab2.eeecs.qub.ac.uk/40315028/csc7078-project-andrewpickard/raw/master/tests/imgs/mininet_pings.png" />
+<img src="https://gitlab2.eeecs.qub.ac.uk/40315028/csc7078-project-andrewpickard/raw/master/tests/imgs/xterm_iperf.png" />
+<img src="https://gitlab2.eeecs.qub.ac.uk/40315028/csc7078-project-andrewpickard/raw/master/tests/imgs/wireshark_nmap.png" />
