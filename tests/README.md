@@ -1,19 +1,24 @@
-TESTS README
+**TESTS README**
 
-Multiple tests were run to determine the most efficient data structure / access method for the blocklist.
+Multiple tests were run to determine the most efficient data structure and access/search method for the blocklist.
 
 TL;DR - The best option was to have a blocklist with hashable data structure, load the blocklist in to memory at controller init, and use python 'in' keyword for hash table lookup.
 Resulting in:
-POSITIVE
+
+**POSITIVE**
+
 - No latency for reading file in per-operation
 - O(1) lookup efficiency due to hash table
 - Scalable, as lookup efficiency doesnt decrease with data size
-NEGATIVE
+
+**NEGATIVE**
+
 - Hashable data structure uses more memory (file size almost double)
 - Blocklist loaded on init, program must be restarted to update the list.
 	- Multi-threading solution to update on file change is possible, didn't get to implement though
 
-DETAILS
+
+**DETAILS**
 
 Blocklists were generated using blocklist_gen.py
 Scenario used to test was firewall.yaml
