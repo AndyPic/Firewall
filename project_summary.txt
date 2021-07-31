@@ -1,0 +1,23 @@
+Objective & Description
+The objective is to produce and implement a Firewall within an SDN to block access to predetermined malicious actors, and additionally to protect against SYN flood attacks to prevent potential denial of service.
+The Firewall will likely not incorporate any machine learning or deep packet inspection (DPI), ie. it will not be a Next Generation Firewall (NGFW), however this may be an area for further development, should the time constraints allow.
+The Firewall will compare header information with a blacklist database and prevent access based on that comparison.
+The Firewall will monitor TCP SYN packets and prevent access should the SYN requests reach a (to be determined) threshold.
+The intention with the Firewall is that it would operate as a single component of a multi-level security strategy. With this in mind the Firewall should be relatively light-weight as to not be the cause of undue additional latency, to avoid high cumulative latency with other components of the security strategy.
+Tools & Methods
+•	SDN CockPit will be the environment used during SDN application development.
+•	MiniNet will be used (through SDN CockPit) to emulate the network.
+•	Ryu will likely be the default controller used.
+•	Wireshark will be used to analyse / capture OpenFlow packets within the virtualised network.
+•	The network topology will likely be that of a single switch + controller connecting multiple end points (be that; hosts, networks, autonomous systems etc.)
+Requirements
+1.	Monitor incoming TCP (synchronisation) network traffic & access some header information (eg. IP, MAC addresses etc).
+2.	Monitor the number of half-open / embryonic TCP sessions.
+3.	Access a database / repository (blacklist) of malicious actors.
+4.	Deny access if header information is present in the blacklist ie. ingress traffic determined to be coming from a malicious actor.
+5.	Prevent a SYN flood attack by limiting the number of concurrent embryonic TCP sessions allowed with a single endpoint.
+6.	Fulfil its requirements while minimising additional latency to the end user.
+Evaluation
+The ability to monitor incoming TCP traffic, access header information (Req. 1), access a blacklist (Req. 3) and deny access based on these (Req. 4), will be measured by adding identifying information (IP/MAC addresses etc.) to the blacklist and attempting to ping from a blacklisted endpoint.
+The ability to monitor the volume of embryonic sessions (Req. 2) and prevent SYN flood attack (Req. 5) will be measured by simulating a SYN flood (eg. with hping3) from SDN cockpit, if the number of embryonic sessions exceeds the limit enforced by the Firewall, it will be determined to fail.
+The ability to fulfil these requirements without undue additional latency (Req. 6) will be subjectively evaluated by comparing latency while the Firewall is active vs inactive.
