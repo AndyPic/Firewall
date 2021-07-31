@@ -59,6 +59,7 @@ The average latency (in ms) and std deviations were:
 
 
 <img src="https://gitlab2.eeecs.qub.ac.uk/40315028/csc7078-project-andrewpickard/raw/master/tests/imgs/Firewall_latency_graph.png" />
+Fig. 1 - Stacked graph of relative latency for the different approaches in test 1.
 
 These results indicate that the best performance is to use 32-bit integer with the binary search method.
 
@@ -86,8 +87,8 @@ The average latency (in ms) and std deviations were:
 	3:  Avg		= 0.637944796
 		Std.D	= 0.34912167
 		
-IMAGE
-
+<img src="https://gitlab2.eeecs.qub.ac.uk/40315028/csc7078-project-andrewpickard/raw/master/tests/imgs/firewall_latency_graph_2.png" />
+Fig. 2 - Stacked graph of relative latency for the different approaches in test 2.
 
 These results indicate that the best combination for latency is to:
 - Load the blocklist on init
