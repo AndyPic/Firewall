@@ -82,5 +82,8 @@ These goals were achieved by:
     - Create flow rules for faster routing of subsequent traffic
 - **2)** Switch default flow rule to forward all traffic to the controller
     - Ryu lib used to access header information
-- **3)** Blocklist read in to local variable (dict) to be accessed when needed
+- **3)** Blocklist read in to local variable (dict) from JSON to be accessed when needed
 - **4)** Flow rules and packet forwarding / dropping were implemented based on header information and the blocklist
+
+The additional security goals (outlined in the project summary) of preventing SYN flood attacks were drops, as it was not relevant to the core functionality of the firewall,
+and as the firewall is intended to be used as a single part of a security solution it is best to keep the functionality focused.
