@@ -1,38 +1,61 @@
-############
 ## README ##
-############
 
-Gitlab Content
+**Installation / setup:**
 
-- SDN application code
-- Network digram (Topology)
-- Test information + results
-- Comment code well ( comment similarly to examples provided on canvas )
+(Ensure sdn-cockpit is not running before starting)
 
-Video
+Recommend making a copy of your files before over-writing with mine.
 
-- Intro / background of problem
-- Explanation of solution and justification of choices
-- Demonstration of solution working / running
-- Discuss performance of solution (limitations etc.)
+1. Replace script_run_mininet.py with the one provided here
+	(Minor change to have mac addresses assigned statically from 00:00:00:00:01 up, rather than randomly)
 
-- Does solution uphold CIA triad
+2. Replace proxy.py with the one provided here
+	(Fixes an error in the original file so packet_ratio's work correctly)
 
-- Show additional time delay while application running
+3. **OPTIONAL** Replace run.sh with the one provided here to load firewall as default instead of demo.
 
-TOPIC
- 
-- Firewall!
-	- Restrict access to system
+4. Merge scenarios, src and tasks folder with you local folders within sdn-cockpit
 
-- Prevent malicious actors from accessing the network
-	- Has to have previous knowledge of particular IP to block it?
-	- Determine whether the actor is malicious?
+5. Launch sdn-cockpit as normal.
 
-What security goals am I trying to enforce?
+6. If you didn't replace run.sh (step 3) load the firewall.py application, and firewall.yaml task & scenario
 
-1. Confidentiality
-2. Data Integrity
-3. Accountability
-4. Availability
-5. Controlled Access
+Should be good to go!
+
+**The Topology**
+
+IMAGE
+
+This is a relatively simple, 5 network connected via a single switch topology.
+**n1** is used to represent the 'local network' ie. the network we wish the firewall application to defend,
+- mac address: 00:00:00:00:00:01
+- ip network: 11.0.0.0/16 (mask 11.0.255.255)
+
+**n2 - n5** are used to represent 'external networks' ie. networks that will interact with the local network via the switch
+- mac address': 00:00:00:00:00:02 - 05
+- n2 ip network: 22.0.0.0/8 (mask 22.255.255.255)
+- n3 ip network: 33.0.0.0/16 (mask 33.0.255.255)
+- n4 ip network: 44.0.0.0/8 (mask 44.255.255.255)
+- n5 ip network: 55.0.0.0/24 (mask 55.0.0.255)
+
+**Overview of the application**
+
+This controller will perform the following tasks:
+- Drop all packets that are not either destined, or sourced from the 'local host' (n1 in the topology, by default)
+- Read in the blocklist (.blocklists/blocklist.json) from file
+- Protect the local host by preventing in-bound connection from any hosts defined within the blocklist
+	- MAC addresses
+	- Individual IP addresses
+	- Enitre IP networks
+- On switch connection, a single default flow rule is set to forward all trafic to the controller.
+- If an inbound packet is from a host in the blocklist, the packet will be dropped and a flow rule installed to drop subsequent packets from that host, to the local host
+	- With no hard-timeout and an idle time-out of 30 minutes -> to reduce load on the controller, but allow rules to drop off eventually incase blocklist changes
+- If an inbound packet is not from a blocked host, the packet will be forwarded to the relevant local host ip and a flow rule install to forward subsequent packets.
+- The controller will also provide various useful information via print() statements.
+
+More detailed explanations available in the code / comments
+
+To generate new blocklists:
+Run blocklist_gen.py, requires firewall.yaml scenario file.
+(May need to 'pip install' a compatible yaml lib eg. PyYaml)
+Note: It isn't necesary to generate a blocklist, I've provided one in the files.
