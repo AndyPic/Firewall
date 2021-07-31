@@ -58,7 +58,7 @@ The average latency (in ms) and std deviations were:
 		Std.D	= 1.353785382
 
 
-<img src="https://gitlab2.eeecs.qub.ac.uk/40315028/csc7078-project-andrewpickard/blob/master/tests/imgs/Firewall_latency_graph.png" />
+<img src="https://gitlab2.eeecs.qub.ac.uk/40315028/csc7078-project-andrewpickard/raw/master/tests/imgs/Firewall_latency_graph.png" />
 
 These results indicate that the best performance is to use 32-bit integer with the binary search method.
 
