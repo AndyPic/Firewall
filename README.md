@@ -55,9 +55,17 @@ This controller will perform the following tasks:
 - If an inbound packet is not from a blocked host, the packet will be forwarded to the relevant local host ip and a flow rule install to forward subsequent packets.
 - The controller will also provide various useful information via print() statements.
 
-More detailed explanations available in the code / comments
+The blocklist data was generated using the 'blocklist_gen.py' application that I wrote (in src/.blocklist folder).
 
-To generate new blocklists:
-Run blocklist_gen.py, requires firewall.yaml scenario file.
+The blocklist_gen application will randomly generate a blocklist for the given scenario file, and update that 
+scenario file with the expected packet ratio to enable testing of the firewall (to see if it is blocking the packets we expect it to!)
+
+To generate a new blocklist:
+
+- Requires firewall.yaml scenario file (by default, can be changed in the file "SCENARIO_NAME" constant).
+- The Scenario file must have been run atleast once, for sdn-cockpit to generate the schedule file.
+
+Simply run blocklist_gen.py
 (May need to 'pip install' a compatible yaml lib eg. PyYaml)
 Note: It isn't necesary to generate a blocklist, I've provided one in the files.
+
