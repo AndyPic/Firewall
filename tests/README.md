@@ -100,7 +100,7 @@ These results indicate that the best combination for latency is to:
 
 The figure 2 (and the standard deviations) also demonstrate that using the hashable data structure reduces the variance in lookup times.
 
-<img src"https://gitlab2.eeecs.qub.ac.uk/40315028/csc7078-project-andrewpickard/raw/master/tests/imgs/test_running.png" />
+<img src="https://gitlab2.eeecs.qub.ac.uk/40315028/csc7078-project-andrewpickard/raw/master/tests/imgs/test_running.png" />
 
 Fig. 3 - sdn cockpit while running the firewall.yaml scenario.
 - Ryu pane shows the controller handling packets, setting flow rules and displays the time (ms) to process the packet.
