@@ -1,6 +1,6 @@
 root:
-  description: A single switch connecting 5 networks, n1 to represent the local
-    network and n2-n5 to represent external networks.
+  description: A single switch connecting 5 networks, n1 to represent the local network
+    and n2-n5 to represent external networks.
   name: Firewall Scenario
   networks:
   - alias: Local Network
@@ -98,7 +98,7 @@ root:
       - 5
     runtime: 20
     type: auto
-    wait_for_analaysis: 25
+    wait_for_analaysis: 4
   trafgen:
     deployment_file: oracle/deployment.yaml
     udp_first_packet_delay: 0.5
