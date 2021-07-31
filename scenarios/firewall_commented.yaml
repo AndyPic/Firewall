@@ -1,0 +1,132 @@
+# do not change this
+root:
+  # the name of the scenario
+  name: "Firewall Scenario"
+
+  # a short description that can be printed to console
+  description: A single switch connecting 5 networks, n1 to represent the local
+    network and n2-n5 to represent external networks
+
+  # link to a pdf with a more detailed description (if available)
+  pdf: "./firewall_scenario.pdf"
+
+  # working directory for this scenario
+  working_directory: "cwd/firewall"
+
+  # specify the topology of the scenario
+  topology:
+    # the switches of the topology
+    switches:
+      - name: s1
+        dpid: 1
+        enabled: True
+
+    # 10.x.x.x/8, 10.0.x.x/16, 10.0.0.x/24, 10.0.0.0/32
+    hosts:
+      - name: n1
+        ip: "11.0.0.0/16"
+      - name: n2
+        ip: "22.0.0.0/8"
+      - name: n3
+        ip: "33.0.0.0/16"
+      - name: n4
+        ip: "44.0.0.0/8"
+      - name: n5
+        ip: "55.0.0.0/24"
+
+    # [HostName, SwitchName, bandwidth (mb\s)]
+    links:
+      - [n1, s1, 1000]
+      - [n2, s1, 1000]
+      - [n3, s1, 1000]
+      - [n4, s1, 1000]
+      - [n5, s1, 1000]
+
+  networks:
+    - name: "n1"
+      alias: "Local Network"
+      send_from_src:
+        - "11.0.0.0/16"
+      recv_to_dst:
+        - "11.0.0.0/16"
+      packet_ratio: "0.60"
+    - name: "n2"
+      alias: "External Network 1"
+      send_from_src:
+        - "22.0.0.0/8"
+      send_to_dst:
+        - "11.0.0.0/16"
+      recv_to_dst:
+        - "11.0.0.0/16"
+      packet_ratio: "0"
+    - name: "n3"
+      alias: "External Network 2"
+      send_from_src:
+        - "33.0.0.0/16"
+      send_to_dst:
+        - "11.0.0.0/16"
+      recv_to_dst:
+        - "11.0.0.0/16"
+      packet_ratio: "0"
+    - name: "n4"
+      alias: "External Network 3"
+      send_from_src:
+        - "44.0.0.0/8"
+      send_to_dst:
+        - "11.0.0.0/16"
+      recv_to_dst:
+        - "11.0.0.0/16"
+      packet_ratio: "0"
+    - name: "n5"
+      alias: "External Network 4"
+      send_from_src:
+        - "55.0.0.0/24"
+      send_to_dst:
+        - "11.0.0.0/16"
+      recv_to_dst:
+        - "11.0.0.0/16"
+      packet_ratio: "0"
+
+  # traffic generation
+  traffic:
+    # specify all the profiles that should be used (in parallel!)
+    use_profiles:
+      - default
+
+  # specify traffic profiles for this scenario
+  traffic_profiles:
+    - name: default
+      # estimated runtime of this schedule in seconds
+      runtime: 20
+      # grace time in seconds before performing a traffic analysis
+      wait_for_analaysis: 25
+      # automatically create the schedule with the parameters specified
+      type: auto
+      # evaluation schema: strict, progressive or disregard
+      evaluation: strict
+      # specify the parameters for the schedule
+      params: 
+        # generate x events in total
+        events: 20
+        # randomly select time range for a event between [a,b]
+        range_time: [1,1] 
+        # randomly select the amount of packets from the given array
+        choice_packets: [5]
+        # randomly select a inter arrival time from the given array
+        choice_iat: ["1us"]
+        # randomly select a priority from the given array
+        choice_priority: [1]
+
+  # more advanced traffic generation parameters
+  trafgen:
+
+    # Specifies the (random) ips that are used in the traffic generator.
+    # This is required for setting up the network oracle in 
+    # the controller. The file is stored in the working directory of the
+    # scenario so this can be the same for all scenarios (no need to change).
+    deployment_file: "oracle/deployment.yaml"
+    
+    # Artifical delay for udp streams. The first packet is
+    # sent immediatly and all other packets are sent after a timeout
+    # that can be specified with this variable.
+    udp_first_packet_delay: 0.5
