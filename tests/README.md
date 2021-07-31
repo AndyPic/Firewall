@@ -1,4 +1,4 @@
-**TESTS README**
+##TEST & EVALUATION README##
 
 Multiple tests were run to determine the most efficient data structure and access/search method for the blocklist.
 
@@ -81,6 +81,7 @@ Blocklist file was loaded in on init, not per-operation.
 
 The raw data can be found in 'log.txt' file.
 The average latency (in ms) and std deviations were:
+
 	1:  Avg		= 14.61832064
 		Std.D	= 13.60858829
 	
@@ -106,3 +107,26 @@ Fig. 3 - sdn cockpit while running the firewall.yaml scenario.
 - Ryu pane shows the controller handling packets, setting flow rules and displays the time (ms) to process the packet.
 - Scenario pane shows the details of the scenario, and that it was succesful (ie. the packets were dropped / forwarded as expected).
 - Task pane shows the topology used.
+
+**General functionality testing**
+(ie. does the firewall block / allow the packets we expect it to)
+
+Evaluation methods:
+
+1: Ryu pane (in sdn-cockpit) messages (See Fig. 3)
+    - Due to print() statements within the controller, it is evident how the controller is handling packets
+    - Message displayed on packet in, with source and destination info
+    - Message displayed on new flow rule being set
+        - Colour coded: Green = forward rule, Yellow = drop rule
+2: Scenario success / failure (See Fig. 3)
+    - Packet ratio is set in the scenario file (by blocklist_gen.py) indicating the expected packets to be dropped / forwarded 
+      during the scenario
+    - Displays 'SUCCESS' if the actual packet ratio matches the expected packet ratio
+    - Displays either fail / error if actual doesnt match expected + debug info
+3: Pings / hping3 / nmap / iperf
+    - The ping command was used in mininet to initiate the controller setting up some flow rules, and check packet routing
+    - iperf was used from xterm's to check conectivity, performance and load capability
+        - n1 was set as iperf -s (server) n2-5 connect as iperf -c (clients)
+4: Wireshark was used to view individual packet behaviour
+
+
