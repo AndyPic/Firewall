@@ -2,22 +2,24 @@
 
 **File Structure / Where Is**
 
+(File paths relevant to repo base  [ie. this README location])
+
 Application:
->src>firewall.py
+src > firewall.py
 
 Blocklist:
->src>.blocklist>blocklist.json
+src > .blocklist > blocklist.json
 Blocklist Generator:
->src>.blocklist>blocklist_gen.py
+src > .blocklist > blocklist_gen.py
 
 Scenario:
->scenarios>firewall.yaml
+scenarios > firewall.yaml
 
 Task:
->tasks>firewall.yaml
+tasks > firewall.yaml
 
 Test / Evaluation:
->tests>README.md
+tests > README.md
 
 Images can be found in the 'imgs' sub-fodler of the relevant folder.
 
