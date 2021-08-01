@@ -385,12 +385,8 @@ class FirewallApplication(app_manager.RyuApp):
 
         # Declare default response
         response = False
-        # Access the blocklist file
-        block_file = open(self.block_dir + "blocklist.json", "r")
-        # Parse the json file to python dict
-        blocklist = json.load(block_file)
         # Check if the packet source is present in the mac blocklist
-        if src in blocklist["mac"]:
+        if src in self.blocklist["mac"]:
             # Build match obj
             match = parser.OFPMatch(eth_src=src, eth_dst=dst)
             # Create drop flow rule (empty action list)
@@ -398,8 +394,6 @@ class FirewallApplication(app_manager.RyuApp):
                 datapath, match, [], 2, 0, 1800
             )  # No hard timeout, idle = 30 mins
             response = True
-        # Close resources
-        block_file.close()
         return response
 
     def check_ipv4(self, dst, src, datapath):
@@ -453,7 +447,7 @@ class FirewallApplication(app_manager.RyuApp):
                 self.total_packets, elapsed
             )
         )
-        # self.log_time(elapsed) # Comment / uncomment to log times
+        self.log_time(elapsed) # Comment / uncomment to log times
 
     def log_time(self, elapsed):
         """Method to log latency to file"""
